@@ -1,0 +1,57 @@
+{
+  "root_dir": "/home/hotson/side-projects/WatchTower/examples",
+  "modules": [
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/fastapi_server.py",
+      "module_name": "fastapi_server",
+      "functions": [
+        {
+          "name": "read_root",
+          "qualified_name": "fastapi_server.read_root",
+          "lineno": 8,
+          "end_lineno": 9,
+          "parent_class": null,
+          "decorators": [
+            "app.get('/healthcheck')"
+          ],
+          "route_path": "/healthcheck",
+          "route_methods": [
+            "GET"
+          ]
+        },
+        {
+          "name": "compute",
+          "qualified_name": "fastapi_server.compute",
+          "lineno": 13,
+          "end_lineno": 20,
+          "parent_class": null,
+          "decorators": [
+            "app.get('/compute/<int:sample_size>')"
+          ],
+          "route_path": "/compute/<int:sample_size>",
+          "route_methods": [
+            "GET"
+          ]
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/modules/computation.py",
+      "module_name": "modules.computation",
+      "functions": [
+        {
+          "name": "compute_mean",
+          "qualified_name": "modules.computation.compute_mean",
+          "lineno": 4,
+          "end_lineno": 7,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    }
+  ]
+}
