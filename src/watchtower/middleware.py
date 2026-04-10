@@ -18,15 +18,16 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
         self,
         app,
         output_dir: str = ".watchtower",
-        code_index_path: str = ".watchtower/code_index.json",
     ) -> None:
         super().__init__(app)
         self.output_dir = output_dir
-        self.code_index_path = code_index_path
-        self.code_index = json.loads(Path(code_index_path).read_text(encoding="utf-8"))
+        print("WatchTower is alive")
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        request_id = str(uuid.uuid4())[:8]
+        if request.url.path.startswith("/__watchtower"):
+            return await call_next(request)
+        
+        request_id = uuid.uuid4().hex
         start = time.perf_counter()
 
         profiler = RequestProfiler(output_dir=self.output_dir)
@@ -46,7 +47,9 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
                 }
             )
 
+            code_index = request.app.state.watchtower_code_index
+
             process_request_artifacts(
                 request_dir=str(Path(self.output_dir) / request_id),
-                code_index=self.code_index,
+                code_index=code_index,
             )

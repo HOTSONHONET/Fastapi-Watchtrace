@@ -8,8 +8,8 @@
         {
           "name": "read_root",
           "qualified_name": "fastapi_server.read_root",
-          "lineno": 8,
-          "end_lineno": 9,
+          "lineno": 14,
+          "end_lineno": 15,
           "parent_class": null,
           "decorators": [
             "app.get('/healthcheck')"
@@ -22,13 +22,13 @@
         {
           "name": "compute",
           "qualified_name": "fastapi_server.compute",
-          "lineno": 13,
-          "end_lineno": 20,
+          "lineno": 19,
+          "end_lineno": 21,
           "parent_class": null,
           "decorators": [
-            "app.get('/compute/<int:sample_size>')"
+            "app.get('/compute/{sample_size}')"
           ],
-          "route_path": "/compute/<int:sample_size>",
+          "route_path": "/compute/{sample_size}",
           "route_methods": [
             "GET"
           ]

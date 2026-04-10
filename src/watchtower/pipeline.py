@@ -23,7 +23,19 @@ def process_request_artifacts(request_dir: str, code_index: dict) -> None:
     normalized = normalize_trace_events(events)
     user_events = filter_user_events(normalized, indexed_files)
     enriched = attach_index_metadata(user_events, code_index)
+    
+    print("ENRICHED EVENTS:")
+    for e in enriched:
+        print(e["qualified_name"], e["ts"], e["duration_us"])
+    print("USER EVENTS:")
+    for e in user_events:
+        print(e["file_path"], e["line_no"], e["func_name"])
 
+    print("ENRICHED EVENTS:")
+    for e in enriched:
+        print(e["qualified_name"], e["ts"], e["duration_us"])
+
+        
     tree = build_request_tree(enriched, memory["meta"])
     graph = tree_to_graph(tree)
 

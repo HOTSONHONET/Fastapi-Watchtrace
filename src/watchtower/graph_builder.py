@@ -15,7 +15,6 @@ def tree_to_graph(tree: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
 
     def visit(node: dict[str, Any], parent_id: str | None = None, depth: int = 0) -> None:
         node_id = node["name"]
-
         node_type = "request" if depth == 0 else "function"
 
         nodes.append(

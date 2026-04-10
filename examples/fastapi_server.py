@@ -1,11 +1,24 @@
 from fastapi import FastAPI
-from watchtower import WatchTowerMiddleware
+from watchtower import WatchTowerMiddleware, setup_watchtower
+from fastapi.middleware.cors import CORSMiddleware
 
 from .modules.computation import compute_mean
 
 app = FastAPI()
-app.add_middleware(WatchTowerMiddleware, output_dir=".watchtower")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+setup_watchtower(
+    app,
+    source_root="examples",
+    output_dir=".watchtower",
+)
 
 @app.get("/healthcheck")
 async def read_root():
