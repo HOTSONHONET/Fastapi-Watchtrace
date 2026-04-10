@@ -17,7 +17,9 @@ app.add_middleware(
 setup_watchtower(
     app,
     source_root="examples",
-    output_dir=".watchtower",
+    output_dir=".watchtower-simple_server",
+    enable_ui=True,
+    ui_dist_dir="frontend/watchtower-ui/dist",
 )
 
 @app.get("/healthcheck")

@@ -15,11 +15,33 @@ def create_watchtower_router(output_dir: str = ".watchtower") -> APIRouter:
         if not watchtower_dir.exists():
             return {"requests": []}
 
-        request_dirs = sorted(
-            [p.name for p in watchtower_dir.iterdir() if p.is_dir()],
+        results = []
+
+        for request_dir in sorted(
+            [p for p in watchtower_dir.iterdir() if p.is_dir()],
+            key=lambda p: p.stat().st_mtime,
             reverse=True,
-        )
-        return {"requests": request_dirs}
+        ):
+            memory_file = request_dir / "memory.json"
+
+            entry = {
+                "request_id": request_dir.name,
+                "created_at": request_dir.stat().st_mtime,
+                "method": None,
+                "path": None,
+                "duration_ms": None,
+            }
+
+            if memory_file.exists():
+                data = json.loads(memory_file.read_text(encoding="utf-8"))
+                meta = data.get("meta", {})
+                entry["method"] = meta.get("method")
+                entry["path"] = meta.get("path")
+                entry["duration_ms"] = meta.get("duration_ms")
+
+            results.append(entry)
+
+        return {"requests": results}
 
     @router.get("/requests/latest/graph")
     async def latest_graph():

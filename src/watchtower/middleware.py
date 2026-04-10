@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import time
 import uuid
 from pathlib import Path
@@ -18,15 +17,40 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
         self,
         app,
         output_dir: str = ".watchtower",
+        exclude_paths: list[str] | None = None,
     ) -> None:
         super().__init__(app)
         self.output_dir = output_dir
+        self.exclude_paths = exclude_paths or []
+        self.exclude_suffixes = (
+            ".js",
+            ".css",
+            ".map",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".svg",
+            ".ico",
+            ".woff",
+            ".woff2",
+            ".ttf",
+        )
         print("WatchTower is alive")
 
+    def _should_skip(self, path: str) -> bool:
+        if any(path.startswith(prefix) for prefix in self.exclude_paths):
+            return True
+
+        if path.endswith(self.exclude_suffixes):
+            return True
+
+        return False
+
     async def dispatch(self, request: Request, call_next) -> Response:
-        if request.url.path.startswith("/__watchtower"):
+        if self._should_skip(request.url.path):
             return await call_next(request)
-        
+
         request_id = uuid.uuid4().hex
         start = time.perf_counter()
 

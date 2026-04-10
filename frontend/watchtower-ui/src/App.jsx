@@ -1,409 +1,488 @@
-import { useEffect, useMemo, useState } from "react";
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-} from "reactflow";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import ReactFlow, { Background, Controls, MiniMap } from "reactflow";
+import JsonView from "@uiw/react-json-view";
+import { vscodeTheme } from "@uiw/react-json-view/vscode";
 import "reactflow/dist/style.css";
+import "./App.css";
 
-const API_BASE = "http://localhost:8000/__watchtower/api";
 const PAGE_SIZE = 10;
 
-function formatDuration(value) {
-  if (value === null || value === undefined) return "N/A";
+function formatDateTime(value) {
+  if (value == null) return "N/A";
 
-  const num = Number(value);
-  if (Number.isNaN(num)) return String(value);
+  try {
+    const timestamp =
+      typeof value === "number" ? value * 1000 : new Date(value).getTime();
 
-  // Request nodes may be in ms, function nodes may be in us.
-  if (num > 1000) {
-    return `${(num / 1000).toFixed(2)} ms`;
+    if (Number.isNaN(timestamp)) return "N/A";
+    return new Date(timestamp).toLocaleString();
+  } catch {
+    return "N/A";
   }
-  return `${num.toFixed(2)} ms`;
 }
 
-function buildVerticalLayout(graphData) {
-  const spacingY = 140;
-  const centerX = 320;
+function formatDuration(value) {
+  if (value == null || Number.isNaN(Number(value))) return "N/A";
+  return `${Number(value).toFixed(2)} ms`;
+}
 
-  const incomingCount = {};
-  graphData.nodes.forEach((node) => {
-    incomingCount[node.id] = 0;
+function normalizeRequestItem(item) {
+  return {
+    request_id: item.request_id ?? "",
+    method: item.method ?? "GET",
+    path: item.path ?? "N/A",
+    duration_ms: item.duration_ms ?? 0,
+    created_at: item.created_at ?? null,
+    raw: item,
+  };
+}
+
+function buildTreeLayout(nodes, edges) {
+  if (!nodes.length) return nodes;
+
+  const childrenMap = new Map();
+  const indegree = new Map();
+
+  nodes.forEach((node) => {
+    childrenMap.set(node.id, []);
+    indegree.set(node.id, 0);
   });
 
-  graphData.edges.forEach((edge) => {
-    incomingCount[edge.target] = (incomingCount[edge.target] || 0) + 1;
+  edges.forEach((edge) => {
+    if (childrenMap.has(edge.source)) {
+      childrenMap.get(edge.source).push(edge.target);
+    }
+    indegree.set(edge.target, (indegree.get(edge.target) ?? 0) + 1);
   });
 
-  const roots = graphData.nodes.filter((node) => incomingCount[node.id] === 0);
-  const visited = new Set();
-  const ordered = [];
+  const roots = nodes
+    .filter((node) => (indegree.get(node.id) ?? 0) === 0)
+    .map((node) => node.id);
 
-  function dfs(nodeId) {
-    if (visited.has(nodeId)) return;
-    visited.add(nodeId);
+  const levelMap = new Map();
+  const queue = [...roots];
 
-    const node = graphData.nodes.find((n) => n.id === nodeId);
-    if (node) ordered.push(node);
+  roots.forEach((id) => levelMap.set(id, 0));
 
-    const children = graphData.edges
-      .filter((e) => e.source === nodeId)
-      .map((e) => e.target);
+  while (queue.length) {
+    const current = queue.shift();
+    const currentLevel = levelMap.get(current) ?? 0;
+    const children = childrenMap.get(current) ?? [];
 
-    children.forEach(dfs);
+    children.forEach((childId) => {
+      if (!levelMap.has(childId)) {
+        levelMap.set(childId, currentLevel + 1);
+        queue.push(childId);
+      }
+    });
   }
 
-  roots.forEach((root) => dfs(root.id));
-  graphData.nodes.forEach((node) => dfs(node.id));
+  const grouped = new Map();
+  nodes.forEach((node) => {
+    const level = levelMap.get(node.id) ?? 0;
+    if (!grouped.has(level)) grouped.set(level, []);
+    grouped.get(level).push(node.id);
+  });
 
-  return ordered.map((node, index) => ({
-    id: node.id,
+  const spacingX = 280;
+  const spacingY = 120;
+
+  const positioned = nodes.map((node) => {
+    const level = levelMap.get(node.id) ?? 0;
+    const idsAtLevel = grouped.get(level) ?? [];
+    const indexAtLevel = idsAtLevel.indexOf(node.id);
+
+    return {
+      ...node,
+      position: {
+        x: level * spacingX,
+        y: indexAtLevel * spacingY,
+      },
+    };
+  });
+
+  return positioned;
+}
+
+function normalizeGraphResponse(graphResponse) {
+  const rawNodes = Array.isArray(graphResponse?.nodes) ? graphResponse.nodes : [];
+  const rawEdges = Array.isArray(graphResponse?.edges) ? graphResponse.edges : [];
+
+  const nodes = rawNodes.map((node, index) => ({
+    id: String(node.id ?? `node-${index}`),
     data: {
-      label: node.label,
-      meta: node,
+      label: (
+        <div className="flow-node-content">
+          <div className="flow-node-title">
+            {node.label ?? node.full_name ?? node.id ?? "Node"}
+          </div>
+          <div className="flow-node-subtitle">{formatDuration(node.duration)}</div>
+        </div>
+      ),
+      raw: node,
     },
-    position: { x: centerX, y: index * spacingY },
+    position: { x: 0, y: 0 },
     style: {
+      borderRadius: 16,
       padding: 12,
+      border: "1px solid rgba(255,255,255,0.12)",
       minWidth: 220,
-      textAlign: "center",
-      borderRadius: 10,
-      border: "1px solid #999",
-      background: node.type === "request" ? "#ffffff" : "#f7f7f7",
+      background: "#f8fafc",
       color: "#111827",
-      fontWeight: 500,
+      fontWeight: 600,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
     },
-    type: "default",
   }));
+
+  const edges = rawEdges.map((edge, index) => ({
+    id: String(edge.id ?? `edge-${index}`),
+    source: String(edge.source),
+    target: String(edge.target),
+    animated: false,
+    style: { stroke: "#94a3b8" },
+  }));
+
+  return {
+    nodes: buildTreeLayout(nodes, edges),
+    edges,
+    raw: graphResponse,
+  };
+}
+
+function shouldHideRequest(path) {
+  if (!path) return false;
+
+  return (
+    path.startsWith("/__watchtower") ||
+    path === "/docs" ||
+    path === "/openapi.json" ||
+    path === "/favicon.ico"
+  );
 }
 
 export default function App() {
-  const [requestIds, setRequestIds] = useState([]);
-  const [selectedRequestId, setSelectedRequestId] = useState("");
-  const [graph, setGraph] = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [requests, setRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [requestsError, setRequestsError] = useState("");
 
-  const [search, setSearch] = useState("");
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedDetails, setSelectedDetails] = useState(null);
+
+  const [graphNodes, setGraphNodes] = useState([]);
+  const [graphEdges, setGraphEdges] = useState([]);
+  const [loadingGraph, setLoadingGraph] = useState(false);
+  const [graphError, setGraphError] = useState("");
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pathFilter, setPathFilter] = useState("");
+  const [methodFilter, setMethodFilter] = useState("");
+  const [fromDateTime, setFromDateTime] = useState("");
+  const [toDateTime, setToDateTime] = useState("");
   const [page, setPage] = useState(1);
 
-  const [loadingRequests, setLoadingRequests] = useState(true);
-  const [loadingGraph, setLoadingGraph] = useState(false);
-  const [error, setError] = useState("");
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  async function loadRequests() {
+  const fetchRequests = useCallback(async () => {
+    setLoadingRequests(true);
+    setRequestsError("");
+
     try {
-      setLoadingRequests(true);
-      setError("");
-
-      const res = await fetch(`${API_BASE}/requests`);
+      const res = await fetch("/__watchtower/api/requests");
       if (!res.ok) {
         throw new Error(`Failed to fetch requests: ${res.status}`);
       }
 
       const data = await res.json();
-      const ids = data.requests || [];
-      setRequestIds(ids);
-
-      if (ids.length > 0 && !selectedRequestId) {
-        setSelectedRequestId(ids[0]);
-      }
+      const list = Array.isArray(data?.requests) ? data.requests : [];
+      setRequests(list.map(normalizeRequestItem));
     } catch (err) {
-      setError(err.message || "Failed to load requests");
+      setRequestsError(err.message || "Failed to load requests");
     } finally {
       setLoadingRequests(false);
     }
-  }
+  }, []);
 
-  async function loadGraphForRequest(requestId) {
+  const fetchGraph = useCallback(async (requestId) => {
     if (!requestId) return;
 
-    try {
-      setLoadingGraph(true);
-      setError("");
-      setSelectedNode(null);
+    setLoadingGraph(true);
+    setGraphError("");
 
-      const res = await fetch(`${API_BASE}/requests/${requestId}/graph`);
+    try {
+      const res = await fetch(`/__watchtower/api/requests/${requestId}/graph`);
       if (!res.ok) {
-        throw new Error(`Failed to fetch graph for ${requestId}: ${res.status}`);
+        throw new Error(`Failed to fetch graph: ${res.status}`);
       }
 
       const data = await res.json();
-      setGraph(data);
+      const normalized = normalizeGraphResponse(data);
+
+      setGraphNodes(normalized.nodes);
+      setGraphEdges(normalized.edges);
+      setSelectedDetails(data);
     } catch (err) {
-      setError(err.message || "Failed to load graph");
-      setGraph(null);
+      setGraphNodes([]);
+      setGraphEdges([]);
+      setGraphError(err.message || "Failed to load graph");
     } finally {
       setLoadingGraph(false);
     }
-  }
-
-  useEffect(() => {
-    loadRequests();
   }, []);
 
   useEffect(() => {
-    if (selectedRequestId) {
-      loadGraphForRequest(selectedRequestId);
-    }
-  }, [selectedRequestId]);
+    fetchRequests();
+  }, [fetchRequests]);
 
-  const filteredRequestIds = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return requestIds;
-    return requestIds.filter((id) => id.toLowerCase().includes(q));
-  }, [requestIds, search]);
+  const methods = useMemo(() => {
+    return [...new Set(requests.map((r) => r.method).filter(Boolean))];
+  }, [requests]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRequestIds.length / PAGE_SIZE));
+  const filteredRequests = useMemo(() => {
+    return requests
+      .filter((req) => !shouldHideRequest(req.path))
+      .filter((req) => {
+        const q = searchTerm.trim().toLowerCase();
+        const p = pathFilter.trim().toLowerCase();
+
+        const matchesSearch =
+          !q ||
+          req.request_id.toLowerCase().includes(q) ||
+          req.path.toLowerCase().includes(q) ||
+          req.method.toLowerCase().includes(q);
+
+        const matchesPath = !p || req.path.toLowerCase().includes(p);
+        const matchesMethod = !methodFilter || req.method === methodFilter;
+
+        const reqTime = req.created_at ? req.created_at * 1000 : null;
+        const fromTime = fromDateTime ? new Date(fromDateTime).getTime() : null;
+        const toTime = toDateTime ? new Date(toDateTime).getTime() : null;
+
+        const matchesFrom = !fromTime || (reqTime != null && reqTime >= fromTime);
+        const matchesTo = !toTime || (reqTime != null && reqTime <= toTime);
+
+        return matchesSearch && matchesPath && matchesMethod && matchesFrom && matchesTo;
+      });
+  }, [requests, searchTerm, pathFilter, methodFilter, fromDateTime, toDateTime]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / PAGE_SIZE));
+
+  const paginatedRequests = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredRequests.slice(start, start + PAGE_SIZE);
+  }, [filteredRequests, page]);
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
+    if (page > totalPages) setPage(1);
   }, [page, totalPages]);
 
-  const paginatedRequestIds = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filteredRequestIds.slice(start, start + PAGE_SIZE);
-  }, [filteredRequestIds, page]);
+  const handleSelectRequest = async (req) => {
+    setSelectedRequest(req);
+    setSelectedDetails(req.raw);
+    await fetchGraph(req.request_id);
+  };
 
-  const nodes = useMemo(() => {
-    if (!graph) return [];
-    return buildVerticalLayout(graph).map((node) => ({
-      ...node,
-      data: {
-        ...node.data,
-        label: (
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>{node.data.meta.label}</div>
-            <div style={{ marginTop: 8, fontSize: 13, opacity: 0.85 }}>
-              {formatDuration(node.data.meta.duration)}
-            </div>
-          </div>
-        ),
-      },
-    }));
-  }, [graph]);
+  const handleRefreshSelected = async () => {
+    if (!selectedRequest?.request_id) return;
+    await fetchGraph(selectedRequest.request_id);
+  };
 
-  const edges = useMemo(() => {
-    if (!graph) return [];
-    return graph.edges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      animated: false,
-    }));
-  }, [graph]);
+  const clearFilters = () => {
+    setSearchTerm("");
+    setPathFilter("");
+    setMethodFilter("");
+    setFromDateTime("");
+    setToDateTime("");
+    setPage(1);
+  };
+
+  const onNodeClick = useCallback(
+    (_, node) => {
+      setSelectedDetails(node?.data?.raw ?? node);
+      if (!isRightPanelOpen) {
+        setIsRightPanelOpen(true);
+      }
+    },
+    [isRightPanelOpen]
+  );
 
   return (
-    <div style={{ width: "100vw", height: "100vh", display: "flex", background: "#0f172a" }}>
-      <div
-        style={{
-          width: 340,
-          borderRight: "1px solid #1f2937",
-          background: "#111827",
-          color: "#e5e7eb",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div style={{ padding: 16, borderBottom: "1px solid #1f2937" }}>
-          <h2 style={{ margin: 0, fontSize: 22 }}>WatchTower</h2>
-          <div style={{ marginTop: 8, fontSize: 13, opacity: 0.8 }}>
-            Request Catalog
-          </div>
+    <div className="app-shell">
+      <aside className="left-sidebar">
+        <div className="brand-block">
+          <h1>WatchTower</h1>
+          <p>Request Catalog</p>
         </div>
 
-        <div style={{ padding: 16, borderBottom: "1px solid #1f2937" }}>
+        <div className="filter-group">
           <input
             type="text"
-            placeholder="Search request id..."
-            value={search}
+            placeholder="Search request id, path, method..."
+            value={searchTerm}
             onChange={(e) => {
-              setSearch(e.target.value);
+              setSearchTerm(e.target.value);
               setPage(1);
             }}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 8,
-              border: "1px solid #374151",
-              background: "#0b1220",
-              color: "#e5e7eb",
-              outline: "none",
+          />
+
+          <input
+            type="text"
+            placeholder="Filter by path..."
+            value={pathFilter}
+            onChange={(e) => {
+              setPathFilter(e.target.value);
+              setPage(1);
             }}
           />
-          <button
-            onClick={loadRequests}
-            style={{
-              marginTop: 10,
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: 8,
-              border: "1px solid #374151",
-              background: "#1f2937",
-              color: "#e5e7eb",
-              cursor: "pointer",
+
+          <select
+            value={methodFilter}
+            onChange={(e) => {
+              setMethodFilter(e.target.value);
+              setPage(1);
             }}
           >
-            Refresh request list
-          </button>
-        </div>
+            <option value="">All methods</option>
+            {methods.map((method) => (
+              <option key={method} value={method}>
+                {method}
+              </option>
+            ))}
+          </select>
 
-        <div style={{ padding: "10px 16px", fontSize: 13, opacity: 0.8 }}>
-          {loadingRequests
-            ? "Loading requests..."
-            : `${filteredRequestIds.length} request(s)`}
-        </div>
-
-        <div style={{ flex: 1, overflowY: "auto", padding: "0 12px 12px 12px" }}>
-          {paginatedRequestIds.map((requestId) => {
-            const active = requestId === selectedRequestId;
-            return (
-              <button
-                key={requestId}
-                onClick={() => setSelectedRequestId(requestId)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  marginBottom: 8,
-                  padding: 12,
-                  borderRadius: 10,
-                  border: active ? "1px solid #60a5fa" : "1px solid #374151",
-                  background: active ? "#1e3a8a" : "#111827",
-                  color: "#e5e7eb",
-                  cursor: "pointer",
-                  wordBreak: "break-all",
-                }}
-              >
-                {requestId}
-              </button>
-            );
-          })}
-
-          {!loadingRequests && paginatedRequestIds.length === 0 && (
-            <div style={{ padding: 12, opacity: 0.8 }}>No matching requests.</div>
-          )}
-        </div>
-
-        <div
-          style={{
-            borderTop: "1px solid #1f2937",
-            padding: 12,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 8,
-          }}
-        >
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "1px solid #374151",
-              background: page === 1 ? "#111827" : "#1f2937",
-              color: "#e5e7eb",
-              cursor: page === 1 ? "not-allowed" : "pointer",
+          <div className="field-label">From datetime</div>
+          <input
+            type="datetime-local"
+            value={fromDateTime}
+            onChange={(e) => {
+              setFromDateTime(e.target.value);
+              setPage(1);
             }}
-          >
-            Prev
-          </button>
+          />
 
-          <div style={{ fontSize: 13 }}>
-            Page {page} / {totalPages}
+          <div className="field-label">To datetime</div>
+          <input
+            type="datetime-local"
+            value={toDateTime}
+            onChange={(e) => {
+              setToDateTime(e.target.value);
+              setPage(1);
+            }}
+          />
+
+          <div className="filter-actions">
+            <button onClick={clearFilters}>Clear filters</button>
+            <button onClick={fetchRequests}>Refresh list</button>
           </div>
-
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "1px solid #374151",
-              background: page === totalPages ? "#111827" : "#1f2937",
-              color: "#e5e7eb",
-              cursor: page === totalPages ? "not-allowed" : "pointer",
-            }}
-          >
-            Next
-          </button>
         </div>
-      </div>
 
-      <div style={{ flex: 1, display: "flex" }}>
-        <div style={{ flex: 1, position: "relative" }}>
-          <div style={{ position: "absolute", top: 12, left: 12, zIndex: 10 }}>
+        <div className="request-count">
+          {loadingRequests ? "Loading requests..." : `${filteredRequests.length} request(s)`}
+        </div>
+
+        {requestsError ? (
+          <div className="error-box">{requestsError}</div>
+        ) : (
+          <div className="request-list">
+            {paginatedRequests.map((req) => {
+              const isActive = selectedRequest?.request_id === req.request_id;
+              return (
+                <button
+                  key={req.request_id}
+                  className={`request-card ${isActive ? "active" : ""}`}
+                  onClick={() => handleSelectRequest(req)}
+                >
+                  <div className="request-id">{req.request_id}</div>
+                  <div className="request-meta">
+                    {req.method} {req.path}
+                  </div>
+                  <div className="request-submeta">
+                    <span>{formatDateTime(req.created_at)}</span>
+                    <span>{formatDuration(req.duration_ms)}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="pagination-bar">
+          <span>
+            Page {page} / {totalPages}
+          </span>
+          <div className="pagination-actions">
             <button
-              onClick={() => selectedRequestId && loadGraphForRequest(selectedRequestId)}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 8,
-                border: "1px solid #374151",
-                background: "#ffffff",
-                color: "#111827",
-                cursor: "pointer",
-              }}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
             >
-              Refresh selected graph
+              Prev
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+            >
+              Next
             </button>
           </div>
+        </div>
+      </aside>
 
-          {loadingGraph ? (
-            <div style={{ color: "#e5e7eb", padding: 20 }}>Loading graph...</div>
-          ) : error ? (
-            <div style={{ color: "#fca5a5", padding: 20 }}>{error}</div>
-          ) : (
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              fitView
-              onNodeClick={(_, node) => setSelectedNode(node.data.meta)}
-            >
-              <MiniMap />
-              <Controls />
-              <Background />
-            </ReactFlow>
-          )}
+      <main className="graph-area">
+        <div className="graph-toolbar">
+          <button
+            onClick={handleRefreshSelected}
+            disabled={!selectedRequest || loadingGraph}
+          >
+            {loadingGraph ? "Refreshing..." : "Refresh selected graph"}
+          </button>
         </div>
 
-        <div
-          style={{
-            width: 360,
-            borderLeft: "1px solid #1f2937",
-            background: "#f8fafc",
-            color: "#0f172a",
-            padding: 16,
-            overflowY: "auto",
-            fontFamily: "sans-serif",
-          }}
+        {graphError ? (
+          <div className="graph-empty-state">{graphError}</div>
+        ) : graphNodes.length === 0 ? (
+          <div className="graph-empty-state">
+            Select a request from the left panel to view its call graph.
+          </div>
+        ) : (
+          <ReactFlow
+            nodes={graphNodes}
+            edges={graphEdges}
+            fitView
+            onNodeClick={onNodeClick}
+          >
+            <Background gap={22} size={1} />
+            <MiniMap />
+            <Controls />
+          </ReactFlow>
+        )}
+      </main>
+
+      <aside className={`right-sidebar ${isRightPanelOpen ? "open" : "collapsed"}`}>
+        <button
+          className="toggle-details-btn"
+          onClick={() => setIsRightPanelOpen((prev) => !prev)}
+          title={isRightPanelOpen ? "Collapse details" : "Expand details"}
         >
-          <h2 style={{ marginTop: 0 }}>Request Details</h2>
+          {isRightPanelOpen ? "⟩" : "⟨"}
+        </button>
 
-          <p>
-            <strong>Selected request:</strong><br />
-            <span style={{ wordBreak: "break-all" }}>
-              {selectedRequestId || "None"}
-            </span>
-          </p>
+        {isRightPanelOpen && (
+          <div className="details-panel">
+            <div className="details-header">
+              <h2>Request Details</h2>
+            </div>
 
-          {!selectedNode ? (
-            <p>Click a node in the flow to inspect it.</p>
-          ) : (
-            <>
-              <h3>{selectedNode.label}</h3>
-              <p><strong>Full name:</strong> {selectedNode.full_name}</p>
-              <p><strong>Type:</strong> {selectedNode.type}</p>
-              <p><strong>Duration:</strong> {formatDuration(selectedNode.duration)}</p>
-              <p><strong>File:</strong> {selectedNode.file_path ?? "N/A"}</p>
-              <p><strong>Line:</strong> {selectedNode.line_no ?? "N/A"}</p>
-              <p><strong>Route:</strong> {selectedNode.route_path ?? "N/A"}</p>
-              <p><strong>Methods:</strong> {(selectedNode.route_methods || []).join(", ") || "N/A"}</p>
-              <p><strong>Expandable:</strong> {selectedNode.expandable ? "Yes" : "No"}</p>
-            </>
-          )}
-        </div>
-      </div>
+            {selectedRequest && (
+              <div className="selected-request-text">
+                Selected request: <strong>{selectedRequest.request_id}</strong>
+              </div>
+            )}
+
+            <div className="json-panel">
+              <JsonView value={selectedDetails ?? {}} style={vscodeTheme} />
+            </div>
+          </div>
+        )}
+      </aside>
     </div>
   );
 }

@@ -1,0 +1,459 @@
+{
+  "root_dir": "/home/hotson/side-projects/WatchTower/examples",
+  "modules": [
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/api/routes.py",
+      "module_name": "complex_server.api.routes",
+      "functions": [
+        {
+          "name": "get_dashboard",
+          "qualified_name": "complex_server.api.routes.get_dashboard",
+          "lineno": 7,
+          "end_lineno": 16,
+          "parent_class": null,
+          "decorators": [
+            "router.get('/dashboard/{user_id}')"
+          ],
+          "route_path": "/dashboard/{user_id}",
+          "route_methods": [
+            "GET"
+          ]
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/clients/inventory_client.py",
+      "module_name": "complex_server.clients.inventory_client",
+      "functions": [
+        {
+          "name": "fetch_popular_categories",
+          "qualified_name": "complex_server.clients.inventory_client.fetch_popular_categories",
+          "lineno": 6,
+          "end_lineno": 9,
+          "parent_class": null,
+          "decorators": [
+            "traceable('inventory_client.fetch_popular_categories')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/clients/payment_client.py",
+      "module_name": "complex_server.clients.payment_client",
+      "functions": [
+        {
+          "name": "fetch_payment_score",
+          "qualified_name": "complex_server.clients.payment_client.fetch_payment_score",
+          "lineno": 6,
+          "end_lineno": 12,
+          "parent_class": null,
+          "decorators": [
+            "traceable('payment_client.fetch_payment_score')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/core/cache.py",
+      "module_name": "complex_server.core.cache",
+      "functions": [
+        {
+          "name": "get_cache",
+          "qualified_name": "complex_server.core.cache.get_cache",
+          "lineno": 5,
+          "end_lineno": 7,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        },
+        {
+          "name": "set_cache",
+          "qualified_name": "complex_server.core.cache.set_cache",
+          "lineno": 9,
+          "end_lineno": 11,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/core/config.py",
+      "module_name": "complex_server.core.config",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Settings",
+          "qualified_name": "complex_server.core.config.Settings",
+          "lineno": 1,
+          "end_lineno": 5,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/core/decorators.py",
+      "module_name": "complex_server.core.decorators",
+      "functions": [
+        {
+          "name": "traceable",
+          "qualified_name": "complex_server.core.decorators.traceable",
+          "lineno": 5,
+          "end_lineno": 17,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/core/logging_util.py",
+      "module_name": "complex_server.core.logging_util",
+      "functions": [
+        {
+          "name": "log_event",
+          "qualified_name": "complex_server.core.logging_util.log_event",
+          "lineno": 3,
+          "end_lineno": 5,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/data/seed_data.py",
+      "module_name": "complex_server.data.seed_data",
+      "functions": [],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/main.py",
+      "module_name": "complex_server.main",
+      "functions": [],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/models/schemas.py",
+      "module_name": "complex_server.models.schemas",
+      "functions": [],
+      "classes": [
+        {
+          "name": "UserProfile",
+          "qualified_name": "complex_server.models.schemas.UserProfile",
+          "lineno": 4,
+          "end_lineno": 8,
+          "methods": []
+        },
+        {
+          "name": "Order",
+          "qualified_name": "complex_server.models.schemas.Order",
+          "lineno": 10,
+          "end_lineno": 13,
+          "methods": []
+        },
+        {
+          "name": "DashboardResponse",
+          "qualified_name": "complex_server.models.schemas.DashboardResponse",
+          "lineno": 15,
+          "end_lineno": 19,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/orchestrators/user_orchestrator.py",
+      "module_name": "complex_server.orchestrators.user_orchestrator",
+      "functions": [
+        {
+          "name": "fetch_user_context",
+          "qualified_name": "complex_server.orchestrators.user_orchestrator.fetch_user_context",
+          "lineno": 7,
+          "end_lineno": 17,
+          "parent_class": null,
+          "decorators": [
+            "traceable('user_orchestrator.fetch_user_context')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/repositories/order_repository.py",
+      "module_name": "complex_server.repositories.order_repository",
+      "functions": [
+        {
+          "name": "get_orders_for_user",
+          "qualified_name": "complex_server.repositories.order_repository.get_orders_for_user",
+          "lineno": 7,
+          "end_lineno": 10,
+          "parent_class": null,
+          "decorators": [
+            "traceable('order_repository.get_orders_for_user')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/repositories/user_repository.py",
+      "module_name": "complex_server.repositories.user_repository",
+      "functions": [
+        {
+          "name": "get_user_by_id",
+          "qualified_name": "complex_server.repositories.user_repository.get_user_by_id",
+          "lineno": 7,
+          "end_lineno": 10,
+          "parent_class": null,
+          "decorators": [
+            "traceable('user_repository.get_user_by_id')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/services/analytics_service.py",
+      "module_name": "complex_server.services.analytics_service",
+      "functions": [
+        {
+          "name": "compute_user_analytics",
+          "qualified_name": "complex_server.services.analytics_service.compute_user_analytics",
+          "lineno": 6,
+          "end_lineno": 16,
+          "parent_class": null,
+          "decorators": [
+            "traceable('analytics_service.compute_user_analytics')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/services/profile_service.py",
+      "module_name": "complex_server.services.profile_service",
+      "functions": [
+        {
+          "name": "build_user_dashboard",
+          "qualified_name": "complex_server.services.profile_service.build_user_dashboard",
+          "lineno": 10,
+          "end_lineno": 46,
+          "parent_class": null,
+          "decorators": [
+            "traceable('profile_service.build_user_dashboard')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/services/recommendation_service.py",
+      "module_name": "complex_server.services.recommendation_service",
+      "functions": [
+        {
+          "name": "generate_recommendations",
+          "qualified_name": "complex_server.services.recommendation_service.generate_recommendations",
+          "lineno": 6,
+          "end_lineno": 20,
+          "parent_class": null,
+          "decorators": [
+            "traceable('recommendation_service.generate_recommendations')"
+          ],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/test/call_server.py",
+      "module_name": "complex_server.test.call_server",
+      "functions": [],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/utils/math_utils.py",
+      "module_name": "complex_server.utils.math_utils",
+      "functions": [
+        {
+          "name": "average",
+          "qualified_name": "complex_server.utils.math_utils.average",
+          "lineno": 3,
+          "end_lineno": 7,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        },
+        {
+          "name": "percentile_bucket",
+          "qualified_name": "complex_server.utils.math_utils.percentile_bucket",
+          "lineno": 9,
+          "end_lineno": 17,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/utils/retry.py",
+      "module_name": "complex_server.utils.retry",
+      "functions": [
+        {
+          "name": "retry_call",
+          "qualified_name": "complex_server.utils.retry.retry_call",
+          "lineno": 4,
+          "end_lineno": 13,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/utils/transformers.py",
+      "module_name": "complex_server.utils.transformers",
+      "functions": [
+        {
+          "name": "enrich_user",
+          "qualified_name": "complex_server.utils.transformers.enrich_user",
+          "lineno": 4,
+          "end_lineno": 10,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        },
+        {
+          "name": "enrich_orders",
+          "qualified_name": "complex_server.utils.transformers.enrich_orders",
+          "lineno": 12,
+          "end_lineno": 21,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        },
+        {
+          "name": "build_summary",
+          "qualified_name": "complex_server.utils.transformers.build_summary",
+          "lineno": 23,
+          "end_lineno": 30,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/complex_server/utils/validators.py",
+      "module_name": "complex_server.utils.validators",
+      "functions": [
+        {
+          "name": "validate_user_id",
+          "qualified_name": "complex_server.utils.validators.validate_user_id",
+          "lineno": 3,
+          "end_lineno": 6,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        },
+        {
+          "name": "validate_flags",
+          "qualified_name": "complex_server.utils.validators.validate_flags",
+          "lineno": 8,
+          "end_lineno": 13,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/simple_server/fastapi_server.py",
+      "module_name": "simple_server.fastapi_server",
+      "functions": [
+        {
+          "name": "read_root",
+          "qualified_name": "simple_server.fastapi_server.read_root",
+          "lineno": 26,
+          "end_lineno": 27,
+          "parent_class": null,
+          "decorators": [
+            "app.get('/healthcheck')"
+          ],
+          "route_path": "/healthcheck",
+          "route_methods": [
+            "GET"
+          ]
+        },
+        {
+          "name": "compute",
+          "qualified_name": "simple_server.fastapi_server.compute",
+          "lineno": 31,
+          "end_lineno": 33,
+          "parent_class": null,
+          "decorators": [
+            "app.get('/compute/{sample_size}')"
+          ],
+          "route_path": "/compute/{sample_size}",
+          "route_methods": [
+            "GET"
+          ]
+        }
+      ],
+      "classes": []
+    },
+    {
+      "file_path": "/home/hotson/side-projects/WatchTower/examples/simple_server/modules/computation.py",
+      "module_name": "simple_server.modules.computation",
+      "functions": [
+        {
+          "name": "compute_mean",
+          "qualified_name": "simple_server.modules.computation.compute_mean",
+          "lineno": 4,
+          "end_lineno": 7,
+          "parent_class": null,
+          "decorators": [],
+          "route_path": null,
+          "route_methods": []
+        }
+      ],
+      "classes": []
+    }
+  ]
+}
