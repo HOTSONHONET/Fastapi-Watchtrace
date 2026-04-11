@@ -3,29 +3,30 @@
 
 WatchTower is a project-aware FastAPI runtime observability tool that maps requests to user-defined classes and functions, helping developers understand request flow and inspect profiling data without framework noise.
 
+### Requirements
+- Use `async def` endpoints for best tracing accuracy
+- Sync endpoints (`def`) may lead to incomplete or unstable traces
 
-### Best MVP plan now
 
-#### Task 1
+### Example usage
 
-Build indexer.py
+```python
 
-#### Task 2
 
-Generate code_index.json
+from fastapi import FastAPI
+from .api.routes import router
+from watchtower import setup_watchtower
 
-#### Task 3
+app = FastAPI(title="Complex Profiling Demo")
 
-Make middleware load this index at startup
+setup_watchtower(
+    app,
+    source_root="examples",
+    output_dir=".watchtower-complex_server",
+    enable_ui=True,
+    ui_dist_dir="frontend/watchtower-ui/dist",
+)
+app.include_router(router)
 
-#### Task 4
+```
 
-When request trace is saved, filter raw trace to indexed code only
-
-#### Task 5
-
-Build request tree from filtered events
-
-#### Task 6
-
-Render sunburst
