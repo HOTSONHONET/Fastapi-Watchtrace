@@ -132,6 +132,7 @@ function normalizeGraphResponse(graphResponse) {
       color: "#111827",
       fontWeight: 600,
       boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+      transition: "border 180ms ease, box-shadow 180ms ease",
     },
   }));
 
@@ -140,7 +141,11 @@ function normalizeGraphResponse(graphResponse) {
     source: String(edge.source),
     target: String(edge.target),
     animated: false,
-    style: { stroke: "#94a3b8" },
+    style: {
+      stroke: "#94a3b8",
+      strokeWidth: 1.5,
+      transition: "all 180ms ease",
+    },
   }));
 
   return {
@@ -185,10 +190,16 @@ export default function App() {
   const [rightPanelWidth, setRightPanelWidth] = useState(DEFAULT_RIGHT_PANEL_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
 
+  const [isPlayingFlow, setIsPlayingFlow] = useState(false);
+  const [flowStepIndex, setFlowStepIndex] = useState(-1);
+  const [flowSpeed, setFlowSpeed] = useState(1);
+
   const resizeStateRef = useRef({
     startX: 0,
     startWidth: DEFAULT_RIGHT_PANEL_WIDTH,
   });
+
+  const playbackTimerRef = useRef(null);
 
   const fetchRequests = useCallback(async () => {
     setLoadingRequests(true);
@@ -281,6 +292,13 @@ export default function App() {
     document.body.classList.add("resizing-panel");
   };
 
+  const clearPlaybackTimer = useCallback(() => {
+    if (playbackTimerRef.current) {
+      clearTimeout(playbackTimerRef.current);
+      playbackTimerRef.current = null;
+    }
+  }, []);
+
   const methods = useMemo(() => {
     return [...new Set(requests.map((r) => r.method).filter(Boolean))];
   }, [requests]);
@@ -323,7 +341,117 @@ export default function App() {
     if (page > totalPages) setPage(1);
   }, [page, totalPages]);
 
+  const orderedFlowNodes = useMemo(() => {
+    return [...graphNodes].sort((a, b) => {
+      const aType = a?.data?.raw?.type;
+      const bType = b?.data?.raw?.type;
+
+      if (aType === "request" && bType !== "request") return -1;
+      if (aType !== "request" && bType === "request") return 1;
+
+      const aIndex = a?.data?.raw?.call_index ?? Number.MAX_SAFE_INTEGER;
+      const bIndex = b?.data?.raw?.call_index ?? Number.MAX_SAFE_INTEGER;
+      return aIndex - bIndex;
+    });
+  }, [graphNodes]);
+
+  const activePlaybackNodeId =
+    flowStepIndex >= 0 && flowStepIndex < orderedFlowNodes.length
+      ? orderedFlowNodes[flowStepIndex]?.id
+      : null;
+
+  const visitedPlaybackNodeIds = useMemo(() => {
+    if (flowStepIndex < 0) return new Set();
+    return new Set(
+      orderedFlowNodes.slice(0, flowStepIndex + 1).map((node) => node.id)
+    );
+  }, [orderedFlowNodes, flowStepIndex]);
+
+  const highlightedGraphNodes = useMemo(() => {
+    return graphNodes.map((node) => {
+      const isActive = node.id === activePlaybackNodeId;
+      const isVisited = visitedPlaybackNodeIds.has(node.id);
+
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          border: isActive
+            ? "2px solid #22c55e"
+            : isVisited
+            ? "2px solid #60a5fa"
+            : "1px solid rgba(255,255,255,0.12)",
+          boxShadow: isActive
+            ? "0 0 0 4px rgba(34,197,94,0.18), 0 12px 30px rgba(0,0,0,0.25)"
+            : isVisited
+            ? "0 0 0 3px rgba(96,165,250,0.12), 0 8px 24px rgba(0,0,0,0.18)"
+            : "0 8px 24px rgba(0,0,0,0.18)",
+        },
+      };
+    });
+  }, [graphNodes, activePlaybackNodeId, visitedPlaybackNodeIds]);
+
+  const highlightedGraphEdges = useMemo(() => {
+    return graphEdges.map((edge) => {
+      const isActive =
+        activePlaybackNodeId != null && edge.target === activePlaybackNodeId;
+
+      const isVisited =
+        visitedPlaybackNodeIds.has(edge.source) &&
+        visitedPlaybackNodeIds.has(edge.target);
+
+      return {
+        ...edge,
+        animated: isActive,
+        style: {
+          stroke: isActive ? "#22c55e" : isVisited ? "#60a5fa" : "#94a3b8",
+          strokeWidth: isActive ? 3 : isVisited ? 2.2 : 1.5,
+          transition: "all 180ms ease",
+        },
+      };
+    });
+  }, [graphEdges, activePlaybackNodeId, visitedPlaybackNodeIds]);
+
+  useEffect(() => {
+    clearPlaybackTimer();
+
+    if (!isPlayingFlow) return;
+    if (!orderedFlowNodes.length) return;
+
+    if (flowStepIndex < 0) {
+      setFlowStepIndex(0);
+      return;
+    }
+
+    const currentNode = orderedFlowNodes[flowStepIndex];
+    if (currentNode?.data?.raw) {
+      setSelectedDetails(currentNode.data.raw);
+    }
+
+    if (flowStepIndex >= orderedFlowNodes.length - 1) {
+      setIsPlayingFlow(false);
+      return;
+    }
+
+    const durationMs = currentNode?.data?.raw?.duration ?? 0;
+    const stepDelay = Math.max(300, Math.min(1400, durationMs / flowSpeed));
+
+    playbackTimerRef.current = setTimeout(() => {
+      setFlowStepIndex((prev) => prev + 1);
+    }, stepDelay);
+
+    return () => clearPlaybackTimer();
+  }, [isPlayingFlow, flowStepIndex, orderedFlowNodes, flowSpeed, clearPlaybackTimer]);
+
+  useEffect(() => {
+    return () => clearPlaybackTimer();
+  }, [clearPlaybackTimer]);
+
   const handleSelectRequest = async (req) => {
+    setIsPlayingFlow(false);
+    clearPlaybackTimer();
+    setFlowStepIndex(-1);
+
     setSelectedRequest(req);
     setSelectedDetails(req.raw);
     await fetchGraph(req.request_id);
@@ -331,6 +459,11 @@ export default function App() {
 
   const handleRefreshSelected = async () => {
     if (!selectedRequest?.request_id) return;
+
+    setIsPlayingFlow(false);
+    clearPlaybackTimer();
+    setFlowStepIndex(-1);
+
     await fetchGraph(selectedRequest.request_id);
   };
 
@@ -352,6 +485,46 @@ export default function App() {
     },
     [isRightPanelOpen]
   );
+
+  const handlePlayFlow = () => {
+    if (!orderedFlowNodes.length) return;
+
+    setIsPlayingFlow(true);
+    setFlowStepIndex((prev) => {
+      if (prev < 0 || prev >= orderedFlowNodes.length - 1) return 0;
+      return prev;
+    });
+    setSelectedDetails(orderedFlowNodes[0]?.data?.raw ?? selectedDetails);
+  };
+
+  const handlePauseFlow = () => {
+    setIsPlayingFlow(false);
+    clearPlaybackTimer();
+  };
+
+  const handleResetFlow = () => {
+    setIsPlayingFlow(false);
+    clearPlaybackTimer();
+    setFlowStepIndex(-1);
+
+    if (selectedRequest?.raw) {
+      setSelectedDetails(selectedRequest.raw);
+    }
+  };
+
+  const playbackStatusText = useMemo(() => {
+    if (
+      flowStepIndex >= 0 &&
+      flowStepIndex < orderedFlowNodes.length &&
+      orderedFlowNodes[flowStepIndex]?.data?.raw
+    ) {
+      return `Step ${flowStepIndex + 1} / ${orderedFlowNodes.length} · ${
+        orderedFlowNodes[flowStepIndex].data.raw.full_name ??
+        orderedFlowNodes[flowStepIndex].data.raw.label
+      }`;
+    }
+    return "Playback idle";
+  }, [flowStepIndex, orderedFlowNodes]);
 
   return (
     <div className="app-shell">
@@ -476,12 +649,47 @@ export default function App() {
 
       <main className="graph-area">
         <div className="graph-toolbar">
-          <button
-            onClick={handleRefreshSelected}
-            disabled={!selectedRequest || loadingGraph}
-          >
-            {loadingGraph ? "Refreshing..." : "Refresh selected graph"}
-          </button>
+          <div className="graph-toolbar-row">
+            <button
+              onClick={handleRefreshSelected}
+              disabled={!selectedRequest || loadingGraph}
+            >
+              {loadingGraph ? "Refreshing..." : "Refresh selected graph"}
+            </button>
+
+            <button
+              onClick={handlePlayFlow}
+              disabled={!orderedFlowNodes.length || isPlayingFlow}
+            >
+              Play flow
+            </button>
+
+            <button
+              onClick={handlePauseFlow}
+              disabled={!isPlayingFlow}
+            >
+              Pause
+            </button>
+
+            <button
+              onClick={handleResetFlow}
+              disabled={flowStepIndex < 0 && !isPlayingFlow}
+            >
+              Reset
+            </button>
+
+            <select
+              value={flowSpeed}
+              onChange={(e) => setFlowSpeed(Number(e.target.value))}
+              className="speed-select"
+            >
+              <option value={1}>1x</option>
+              <option value={2}>2x</option>
+              <option value={4}>4x</option>
+            </select>
+          </div>
+
+          <div className="playback-status">{playbackStatusText}</div>
         </div>
 
         {graphError ? (
@@ -492,8 +700,8 @@ export default function App() {
           </div>
         ) : (
           <ReactFlow
-            nodes={graphNodes}
-            edges={graphEdges}
+            nodes={highlightedGraphNodes}
+            edges={highlightedGraphEdges}
             fitView
             onNodeClick={onNodeClick}
           >
