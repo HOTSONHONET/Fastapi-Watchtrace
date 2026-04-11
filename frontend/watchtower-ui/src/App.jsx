@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, { Background, Controls, MiniMap } from "reactflow";
 import JsonView from "@uiw/react-json-view";
 import { vscodeTheme } from "@uiw/react-json-view/vscode";
@@ -6,6 +6,9 @@ import "reactflow/dist/style.css";
 import "./App.css";
 
 const PAGE_SIZE = 10;
+const MIN_RIGHT_PANEL_WIDTH = 320;
+const MAX_RIGHT_PANEL_WIDTH = 900;
+const DEFAULT_RIGHT_PANEL_WIDTH = 460;
 
 function formatDateTime(value) {
   if (value == null) return "N/A";
@@ -87,7 +90,7 @@ function buildTreeLayout(nodes, edges) {
   const spacingX = 280;
   const spacingY = 120;
 
-  const positioned = nodes.map((node) => {
+  return nodes.map((node) => {
     const level = levelMap.get(node.id) ?? 0;
     const idsAtLevel = grouped.get(level) ?? [];
     const indexAtLevel = idsAtLevel.indexOf(node.id);
@@ -100,8 +103,6 @@ function buildTreeLayout(nodes, edges) {
       },
     };
   });
-
-  return positioned;
 }
 
 function normalizeGraphResponse(graphResponse) {
@@ -181,6 +182,13 @@ export default function App() {
   const [page, setPage] = useState(1);
 
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [rightPanelWidth, setRightPanelWidth] = useState(DEFAULT_RIGHT_PANEL_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const resizeStateRef = useRef({
+    startX: 0,
+    startWidth: DEFAULT_RIGHT_PANEL_WIDTH,
+  });
 
   const fetchRequests = useCallback(async () => {
     setLoadingRequests(true);
@@ -232,6 +240,46 @@ export default function App() {
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (event) => {
+      const delta = resizeStateRef.current.startX - event.clientX;
+      const nextWidth = resizeStateRef.current.startWidth + delta;
+      const clampedWidth = Math.min(
+        MAX_RIGHT_PANEL_WIDTH,
+        Math.max(MIN_RIGHT_PANEL_WIDTH, nextWidth)
+      );
+      setRightPanelWidth(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.classList.remove("resizing-panel");
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
+
+  const startResize = (event) => {
+    event.preventDefault();
+    if (!isRightPanelOpen) return;
+
+    resizeStateRef.current = {
+      startX: event.clientX,
+      startWidth: rightPanelWidth,
+    };
+
+    setIsResizing(true);
+    document.body.classList.add("resizing-panel");
+  };
 
   const methods = useMemo(() => {
     return [...new Set(requests.map((r) => r.method).filter(Boolean))];
@@ -456,7 +504,18 @@ export default function App() {
         )}
       </main>
 
-      <aside className={`right-sidebar ${isRightPanelOpen ? "open" : "collapsed"}`}>
+      <aside
+        className={`right-sidebar ${isRightPanelOpen ? "open" : "collapsed"}`}
+        style={isRightPanelOpen ? { width: `${rightPanelWidth}px`, minWidth: `${rightPanelWidth}px` } : {}}
+      >
+        {isRightPanelOpen && (
+          <div
+            className="right-sidebar-resizer"
+            onMouseDown={startResize}
+            title="Drag to resize"
+          />
+        )}
+
         <button
           className="toggle-details-btn"
           onClick={() => setIsRightPanelOpen((prev) => !prev)}
