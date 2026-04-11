@@ -30,3 +30,7 @@ app.include_router(router)
 
 ```
 
+
+### Example of Request Flow animation of a complex server
+
+![Request Flow Animation](assets/request-animation-flow.gif)
