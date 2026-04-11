@@ -68,7 +68,6 @@ def find_matching_function(
     if module is None:
         return None
 
-    # Prefer the narrowest matching range.
     best_match: dict[str, Any] | None = None
     best_span: int | None = None
 
@@ -100,7 +99,9 @@ def attach_index_metadata(
 ) -> list[dict[str, Any]]:
     enriched: list[dict[str, Any]] = []
 
-    for event in events:
+    sorted_events = sorted(events, key=lambda e: (e["ts"], e.get("duration_us", 0)))
+
+    for idx, event in enumerate(sorted_events, start=1):
         match = find_matching_function(
             file_path=event["file_path"],
             line_no=event["line_no"],
@@ -117,6 +118,7 @@ def attach_index_metadata(
                 "route_path": match.get("route_path"),
                 "route_methods": match.get("route_methods", []),
                 "parent_class": match.get("parent_class"),
+                "call_index": idx,
             }
         )
 

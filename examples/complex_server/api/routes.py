@@ -3,8 +3,13 @@ from ..services.profile_service import build_user_dashboard
 
 router = APIRouter()
 
+@router.get("/")
+@router.get("/healthcheck")
+async def healthcheck():
+    return {"status": "ok"}
+
 @router.get("/dashboard/{user_id}")
-def get_dashboard(
+async def get_dashboard(
     user_id: int,
     include_recommendations: bool = Query(True),
     include_analytics: bool = Query(True),

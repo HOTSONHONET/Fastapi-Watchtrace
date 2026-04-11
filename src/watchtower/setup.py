@@ -19,6 +19,11 @@ def setup_watchtower(
     ui_mount_path: str = "/__watchtower",
     ui_dist_dir: str | None = None,
     exclude_paths: list[str] | None = None,
+    trace_inputs: bool = True,
+    include_self: bool = False,
+    input_max_depth: int = 2,
+    input_max_string_length: int = 200,
+    input_max_collection_items: int = 10,
 ) -> None:
     code_index_file = Path(code_index_path)
 
@@ -42,6 +47,11 @@ def setup_watchtower(
         WatchTowerMiddleware,
         output_dir=output_dir,
         exclude_paths=exclude_paths or [ui_mount_path, "/docs", "/redoc", "/openapi.json"],
+        trace_inputs=trace_inputs,
+        include_self=include_self,
+        input_max_depth=input_max_depth,
+        input_max_string_length=input_max_string_length,
+        input_max_collection_items=input_max_collection_items,
     )
 
     app.include_router(

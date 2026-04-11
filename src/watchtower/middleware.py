@@ -18,10 +18,20 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
         app,
         output_dir: str = ".watchtower",
         exclude_paths: list[str] | None = None,
+        trace_inputs: bool = True,
+        include_self: bool = False,
+        input_max_depth: int = 2,
+        input_max_string_length: int = 200,
+        input_max_collection_items: int = 10,
     ) -> None:
         super().__init__(app)
         self.output_dir = output_dir
         self.exclude_paths = exclude_paths or []
+        self.trace_inputs = trace_inputs
+        self.include_self = include_self
+        self.input_max_depth = input_max_depth
+        self.input_max_string_length = input_max_string_length
+        self.input_max_collection_items = input_max_collection_items
         self.exclude_suffixes = (
             ".js",
             ".css",
@@ -54,12 +64,26 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
         request_id = uuid.uuid4().hex
         start = time.perf_counter()
 
-        profiler = RequestProfiler(output_dir=self.output_dir)
+        profiler = RequestProfiler(
+            output_dir=self.output_dir,
+            trace_inputs=self.trace_inputs,
+            include_self=self.include_self,
+            input_max_depth=self.input_max_depth,
+            input_max_string_length=self.input_max_string_length,
+            input_max_collection_items=self.input_max_collection_items,
+        )
+        print("Starting WatchTower profiling for request:", request_id)
         profiler.start(request_id=request_id)
+        print("started WatchTower profiling for request:", request_id)
 
         try:
+            print("Processing request in WatchTower middleware for request:", request_id)
             response = await call_next(request)
+            print("Processed request in WatchTower middleware for request:", request_id)
             return response
+        except Exception as e:
+            print(f"Error during request processing for WatchTower (request_id={request_id}):", e)
+            raise
         finally:
             duration_ms = (time.perf_counter() - start) * 1000
             profiler.stop(
@@ -68,6 +92,7 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
                     "method": request.method,
                     "path": request.url.path,
                     "duration_ms": duration_ms,
+                    "created_at": time.time(),
                 }
             )
 
