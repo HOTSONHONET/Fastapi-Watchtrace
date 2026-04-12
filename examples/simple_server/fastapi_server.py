@@ -16,7 +16,8 @@ app.add_middleware(
 
 setup_watchtower(
     app,
-    source_root="examples",
+    source_root="examples/simple_server",
+    code_index_path=".watchtower-simple_server/code_index.json",
     output_dir=".watchtower-simple_server",
     enable_ui=True,
     ui_dist_dir="frontend/watchtower-ui/dist",

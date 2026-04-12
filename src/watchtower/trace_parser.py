@@ -40,9 +40,6 @@ def normalize_trace_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]
         if not parsed:
             continue
 
-        event_args = event.get("args", {}) or {}
-        func_args = event_args.get("func_args")
-
         normalized.append(
             {
                 "event_id": f"{parsed['func_name']}::{event.get('ts', 0.0)}::{idx}",
@@ -54,8 +51,7 @@ def normalize_trace_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]
                 "pid": event.get("pid"),
                 "tid": event.get("tid"),
                 "raw_name": event.get("name", ""),
-                "func_args": func_args,
-                "raw_args": event_args,
+                "inputs": None,
             }
         )
 
