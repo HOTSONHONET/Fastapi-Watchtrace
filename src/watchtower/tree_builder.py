@@ -27,7 +27,7 @@ def build_request_tree(events: list[dict[str, Any]], request_meta: dict[str, Any
             "route_path": event.get("route_path"),
             "route_methods": event.get("route_methods", []),
             "parent_class": event.get("parent_class"),
-            "inputs": event.get("func_args"),
+            "inputs": event.get("inputs"),
             "raw_args": event.get("raw_args"),
             "children": [],
         }
@@ -39,6 +39,11 @@ def build_request_tree(events: list[dict[str, Any]], request_meta: dict[str, Any
         "request_id": request_meta["request_id"],
         "duration_ms": request_meta["duration_ms"],
         "created_at": request_meta.get("created_at"),
+        "inputs": {
+            "query_params": request_meta.get("query_params"),
+            "request_body": request_meta.get("request_body"),
+        },
+        "raw_args": None,
         "children": [],
     }
 

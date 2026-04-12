@@ -11,8 +11,8 @@ from .api import create_watchtower_router
 def setup_watchtower(
     app: FastAPI,
     source_root: str,
+    code_index_path: str,
     output_dir: str = ".watchtower",
-    code_index_path: str = ".watchtower/code_index.json",
     auto_build_index: bool = True,
     enable_ui: bool = False,
     api_prefix: str = "/__watchtower/api",
@@ -45,6 +45,7 @@ def setup_watchtower(
 
     app.add_middleware(
         WatchTowerMiddleware,
+        source_root=source_root,
         output_dir=output_dir,
         exclude_paths=exclude_paths or [ui_mount_path, "/docs", "/redoc", "/openapi.json"],
         trace_inputs=trace_inputs,
