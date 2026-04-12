@@ -1,6 +1,6 @@
 [project]
 name = "fastapi-watchtower"
-version = "0.1.0"
+version = "1.0.1"
 description = "Request tracing and visualization for FastAPI applications."
 authors = [{name = "Hotson Honett", email = "hotsonhonet@gmail.com"}]
 readme = "README.md"
