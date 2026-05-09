@@ -1,6 +1,6 @@
-# WatchTower
+# WatchTrace
 
-WatchTower is a **project-aware FastAPI runtime observability tool** that traces requests across your application and maps them to user-defined classes and functions.
+WatchTrace is a **project-aware FastAPI runtime observability tool** that traces requests across your application and maps them to user-defined classes and functions.
 
 It helps developers:
 - understand request flow
@@ -13,13 +13,13 @@ It helps developers:
 ## 🚀 Installation
 
 ```bash
-pip install fastapi-watchtower
+pip install fastapi-watchtrace
 ```
 
 or
 
 ```bash
-uv add fastapi-watchtower
+uv add fastapi-watchtrace
 ```
 
 ---
@@ -46,11 +46,11 @@ For this below file structure
 
 ```
 
-Import and initialize `watchtower`
+Import and initialize `watchtrace`
 
 ```python
 from fastapi import FastAPI
-from watchtower import setup_watchtower
+from watchtrace import setup_watchtrace
 
 app = FastAPI(
     title="My Server",
@@ -58,7 +58,7 @@ app = FastAPI(
     description="My ",
 )
 
-setup_watchtower(
+setup_watchtrace(
     app,
     source_root=".",
     code_index_path=".code_index.json",
@@ -82,15 +82,15 @@ uvicorn main:app --reload --port 8000
 
 ```
 
-Once the server is up, you can visit this url [http://localhost:8000/__watchtower/](http://localhost:8000/__watchtower/)
+Once the server is up, you can visit this url [http://localhost:8000/__watchtrace/](http://localhost:8000/__watchtrace/)
 
 ---
 
 ## 🎬 Request Flow Visualization
 
-Below is an example of WatchTower tracing a complex FastAPI request flow:
+Below is an example of WatchTrace tracing a complex FastAPI request flow:
 
-![Request Flow Animation](https://raw.githubusercontent.com/HOTSONHONET/WatchTower/master/assets/request-animation-flow.gif)
+![Request Flow Animation](assets/request-animation-flow.gif)
 
 ---
 
@@ -105,7 +105,7 @@ Below is an example of WatchTower tracing a complex FastAPI request flow:
 
 ---
 
-## 💡 Why WatchTower?
+## 💡 Why WatchTrace?
 
 Modern backend systems are complex:
 - nested service calls
@@ -114,7 +114,7 @@ Modern backend systems are complex:
 
 Traditional logs don’t show **how execution actually flows**.
 
-WatchTower solves this by giving you:
+WatchTrace solves this by giving you:
 > **A visual, step-by-step breakdown of what happened inside your backend.**
 
 ---
@@ -126,8 +126,8 @@ WatchTower solves this by giving you:
 Clone the repository:
 
 ```bash
-git clone https://github.com/HOTSONHONET/WatchTower.git
-cd WatchTower
+git clone https://github.com/HOTSONHONET/WatchTrace.git
+cd WatchTrace
 ```
 
 Install dependencies using `uv`:
@@ -139,7 +139,7 @@ uv sync
 Run the frontend in development mode:
 
 ```bash
-cd frontend/watchtower-ui
+cd frontend/watchtrace-ui
 npm install
 npm run dev
 ```
@@ -153,7 +153,7 @@ npm run build
 The generated UI assets will be available inside:
 
 ```bash
-frontend/watchtower-ui/dist
+frontend/watchtrace-ui/dist
 ```
 
 Run the example ML pipeline server:
@@ -162,10 +162,10 @@ Run the example ML pipeline server:
 uv run uvicorn examples.ml_pipeline_server.main:app --reload
 ```
 
-Open WatchTower UI:
+Open WatchTrace UI:
 
 ```text
-http://localhost:8000/__watchtower/
+http://localhost:8000/__watchtrace/
 ```
 
 ---
@@ -198,7 +198,7 @@ Run wheel smoke test:
 
 The smoke test validates:
 - packaged wheel installation
-- WatchTower UI mounting
+- WatchTrace UI mounting
 - internal API availability
 - generated frontend asset serving
 
@@ -238,7 +238,7 @@ git tag v0.0.1
 git push origin v0.0.1
 ```
 
-WatchTower uses semantic versioning:
+WatchTrace uses semantic versioning:
 
 ```text
 MAJOR.MINOR.PATCH
@@ -254,8 +254,8 @@ Examples:
 
 ## 🔗 Links
 
-- GitHub: https://github.com/HOTSONHONET/WatchTower
-- PyPI: https://pypi.org/project/fastapi-watchtower/
+- GitHub: https://github.com/HOTSONHONET/WatchTrace
+- PyPI: https://pypi.org/project/fastapi-watchtrace/
 
 ---
 
