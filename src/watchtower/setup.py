@@ -107,29 +107,33 @@ def setup_watchtower(
     )
 
     if enable_ui:
+        dist_dir = None
+
         if ui_dist_dir:
-            dist_dir = Path(ui_dist_dir)
-            if not dist_dir.exists():
+            custom_dist = Path(ui_dist_dir)
+            if custom_dist.exists():
+                dist_dir = custom_dist
+            else:
                 print("Warning: Configured WatchTower UI directory not found. Using packaged UI.")
 
-            app.mount(
-                ui_mount_path,
-                StaticFiles(directory=str(dist_dir), html=True),
-                name="watchtower-ui",
-            )
-            return
+        if dist_dir is None:
+            packaged_ui = files("watchtower").joinpath("ui_dist")
+            with as_file(packaged_ui) as packaged_dist:
+                if not packaged_dist.exists():
+                    raise FileNotFoundError(
+                        "Packaged WatchTower UI not found. "
+                        "Make sure src/watchtower/ui_dist is included in package data."
+                    )
 
-        packaged_ui = files("watchtower").joinpath("ui_dist")
-
-        with as_file(packaged_ui) as dist_path:
-            if not dist_path.exists():
-                raise FileNotFoundError(
-                    "Packaged WatchTower UI not found. "
-                    "Make sure src/watchtower/ui_dist is included in package data."
+                app.mount(
+                    ui_mount_path,
+                    StaticFiles(directory=str(packaged_dist), html=True),
+                    name="watchtower-ui",
                 )
+                return
 
-            app.mount(
-                ui_mount_path,
-                StaticFiles(directory=str(dist_path), html=True),
-                name="watchtower-ui",
-            )
+        app.mount(
+            ui_mount_path,
+            StaticFiles(directory=str(dist_dir), html=True),
+            name="watchtower-ui",
+        )

@@ -119,6 +119,139 @@ WatchTower solves this by giving you:
 
 ---
 
+---
+
+## 🛠️ Local Development
+
+Clone the repository:
+
+```bash
+git clone https://github.com/HOTSONHONET/WatchTower.git
+cd WatchTower
+```
+
+Install dependencies using `uv`:
+
+```bash
+uv sync
+```
+
+Run the frontend in development mode:
+
+```bash
+cd frontend/watchtower-ui
+npm install
+npm run dev
+```
+
+Build the frontend UI:
+
+```bash
+npm run build
+```
+
+The generated UI assets will be available inside:
+
+```bash
+frontend/watchtower-ui/dist
+```
+
+Run the example ML pipeline server:
+
+```bash
+uv run uvicorn examples.ml_pipeline_server.main:app --reload
+```
+
+Open WatchTower UI:
+
+```text
+http://localhost:8000/__watchtower/
+```
+
+---
+
+## ✅ Testing
+
+Run all unit tests:
+
+```bash
+uv run --with pytest pytest tests/unit_test
+```
+
+Build the package locally:
+
+```bash
+uv build
+```
+
+Validate package metadata:
+
+```bash
+uv run --with twine twine check dist/*
+```
+
+Run wheel smoke test:
+
+```bash
+./scripts/smoke_test_wheel.sh
+```
+
+The smoke test validates:
+- packaged wheel installation
+- WatchTower UI mounting
+- internal API availability
+- generated frontend asset serving
+
+---
+
+## 📦 Releasing a New Version
+
+Update the version inside `pyproject.toml`:
+
+```toml
+version = "0.0.1"
+```
+
+Build the package:
+
+```bash
+rm -rf dist build src/*.egg-info
+uv build
+```
+
+Validate the package:
+
+```bash
+uv run --with twine twine check dist/*
+```
+
+Upload manually to PyPI:
+
+```bash
+uv run --with twine twine upload dist/*
+```
+
+Or create a release tag for CI/CD publishing:
+
+```bash
+git tag v0.0.1
+git push origin v0.0.1
+```
+
+WatchTower uses semantic versioning:
+
+```text
+MAJOR.MINOR.PATCH
+```
+
+Examples:
+- `0.1.0` → new feature
+- `0.1.1` → bug fix
+- `1.0.0` → stable public release
+
+---
+
+
 ## 🔗 Links
 
 - GitHub: https://github.com/HOTSONHONET/WatchTower
