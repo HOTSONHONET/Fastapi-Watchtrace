@@ -55,7 +55,7 @@ from watchtrace import setup_watchtrace
 app = FastAPI(
     title="My Server",
     version="1.0.0",
-    description="My ",
+    description="My Server",
 )
 
 setup_watchtrace(
