@@ -12,6 +12,9 @@ if [[ ! -f "$WHEEL_PATH" ]]; then
   exit 1
 fi
 
+# Important: resolve wheel path before moving into temp dir
+WHEEL_PATH="$(realpath "$WHEEL_PATH")"
+
 TMP_DIR="$(mktemp -d)"
 SERVER_PID=""
 
