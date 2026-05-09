@@ -90,7 +90,7 @@ Once the server is up, you can visit this url [http://localhost:8000/__watchtrac
 
 Below is an example of WatchTrace tracing a complex FastAPI request flow:
 
-![Request Flow Animation](assets/request-animation-flow.gif)
+![Request Flow Animation](https://raw.githubusercontent.com/HOTSONHONET/Fastapi-Watchtrace/refs/heads/master/assets/request-animation-flow.gif)
 
 ---
 
