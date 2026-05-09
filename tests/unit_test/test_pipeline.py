@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from watchtower.artifacts import save_json
-from watchtower.pipeline import attach_call_inputs, load_call_inputs, normalize_path, process_request_artifacts
+from watchtrace.artifacts import save_json
+from watchtrace.pipeline import attach_call_inputs, load_call_inputs, normalize_path, process_request_artifacts
 
 
 def test_attach_call_inputs_consumes_repeated_matches_in_order(tmp_path: Path) -> None:

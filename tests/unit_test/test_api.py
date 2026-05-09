@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from fastapi import HTTPException
 
-from watchtower.api import create_watchtower_router
+from watchtrace.api import create_watchtrace_router
 
 
 def get_route_endpoint(router, path: str):
@@ -17,7 +17,7 @@ def get_route_endpoint(router, path: str):
 
 
 @pytest.mark.anyio
-async def test_watchtower_router_lists_requests_and_reads_graphs(tmp_path: Path) -> None:
+async def test_watchtrace_router_lists_requests_and_reads_graphs(tmp_path: Path) -> None:
     first = tmp_path / "first"
     latest = tmp_path / "latest"
     first.mkdir()
@@ -27,7 +27,7 @@ async def test_watchtower_router_lists_requests_and_reads_graphs(tmp_path: Path)
         encoding="utf-8",
     )
     (latest / "request_graph.json").write_text(json.dumps({"nodes": ["latest"]}), encoding="utf-8")
-    router = create_watchtower_router(str(tmp_path))
+    router = create_watchtrace_router(str(tmp_path))
 
     list_requests = get_route_endpoint(router, "/requests")
     latest_graph = get_route_endpoint(router, "/requests/latest/graph")
@@ -42,8 +42,8 @@ async def test_watchtower_router_lists_requests_and_reads_graphs(tmp_path: Path)
 
 
 @pytest.mark.anyio
-async def test_watchtower_router_raises_for_missing_artifacts(tmp_path: Path) -> None:
-    router = create_watchtower_router(str(tmp_path / "missing"))
+async def test_watchtrace_router_raises_for_missing_artifacts(tmp_path: Path) -> None:
+    router = create_watchtrace_router(str(tmp_path / "missing"))
     latest_graph = get_route_endpoint(router, "/requests/latest/graph")
     request_graph = get_route_endpoint(router, "/requests/{request_id}/graph")
 

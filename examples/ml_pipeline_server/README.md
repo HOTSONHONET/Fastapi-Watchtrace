@@ -1,6 +1,6 @@
 # ML Pipeline Server Example
 
-This example is designed for WatchTower demos. It simulates a layered ML platform with enough depth to generate interesting traces:
+This example is designed for WatchTrace demos. It simulates a layered ML platform with enough depth to generate interesting traces:
 
 - dataset CRUD
 - feature preparation
@@ -78,7 +78,7 @@ Or run the bundled client:
 python test/call_server.py
 ```
 
-## Why this is good for WatchTower
+## Why this is good for WatchTrace
 
 The training and prediction flows cross multiple layers:
 

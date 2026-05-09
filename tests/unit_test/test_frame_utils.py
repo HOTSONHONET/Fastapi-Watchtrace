@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 
-from watchtower.frame_utils import extract_inputs_from_frame
+from watchtrace.frame_utils import extract_inputs_from_frame
 
 
 def capture_frame(alpha, request, *items, beta="b", **kwargs):

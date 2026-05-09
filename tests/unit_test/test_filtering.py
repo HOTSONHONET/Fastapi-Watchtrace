@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from watchtower.filtering import (
+from watchtrace.filtering import (
     attach_index_metadata,
     filter_user_events,
     find_matching_function,

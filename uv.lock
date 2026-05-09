@@ -286,7 +286,7 @@ wheels = [
 ]
 
 [[package]]
-name = "fastapi-watchtower"
+name = "fastapi-watchtrace"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [

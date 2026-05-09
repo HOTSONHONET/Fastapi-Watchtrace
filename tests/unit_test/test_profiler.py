@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-from watchtower.profiler import RequestProfiler
+from watchtrace.profiler import RequestProfiler
 
 
 def make_frame(file_path: Path, func_name: str = "handler", lineno: int = 7):

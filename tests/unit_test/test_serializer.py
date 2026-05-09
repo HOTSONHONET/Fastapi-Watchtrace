@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from watchtower.serializer import safe_serialize
+from watchtrace.serializer import safe_serialize
 
 
 class SampleObject:

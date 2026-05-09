@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from watchtower.indexer import (
+from watchtrace.indexer import (
     build_and_save_code_index,
     build_code_index,
     build_file_function_map,

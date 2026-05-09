@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from watchtower.graph_builder import tree_to_graph
-from watchtower.tree_builder import build_request_tree
+from watchtrace.graph_builder import tree_to_graph
+from watchtrace.tree_builder import build_request_tree
 
 
 def test_build_request_tree_nests_events_by_timing_and_graph_flattens_tree() -> None:

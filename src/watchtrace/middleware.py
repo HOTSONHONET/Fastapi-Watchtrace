@@ -12,7 +12,7 @@ from .pipeline import process_request_artifacts
 from .profiler import RequestProfiler
 
 
-class WatchTowerMiddleware(BaseHTTPMiddleware):
+class WatchTraceMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
@@ -48,7 +48,7 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
             ".woff2",
             ".ttf",
         )
-        print("WatchTower is alive")
+        print("WatchTrace is alive")
 
     def _should_skip(self, path: str) -> bool:
         if any(path.startswith(prefix) for prefix in self.exclude_paths):
@@ -113,7 +113,7 @@ class WatchTowerMiddleware(BaseHTTPMiddleware):
                 }
             )
 
-            code_index = request.app.state.watchtower_code_index
+            code_index = request.app.state.watchtrace_code_index
 
             process_request_artifacts(
                 request_dir=str(Path(self.output_dir) / request_id),

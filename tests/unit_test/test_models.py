@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from watchtower.models import ClassInfo, CodeIndex, FunctionInfo, ModuleInfo
+from watchtrace.models import ClassInfo, CodeIndex, FunctionInfo, ModuleInfo
 
 
 def test_model_to_dict_serializes_nested_objects() -> None:

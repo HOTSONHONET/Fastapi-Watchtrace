@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from watchtower import WatchTowerMiddleware, setup_watchtower
+from watchtrace import WatchTraceMiddleware, setup_watchtrace
 from fastapi.middleware.cors import CORSMiddleware
 
 from .modules.computation import compute_mean
@@ -14,13 +14,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-setup_watchtower(
+setup_watchtrace(
     app,
     source_root="examples/simple_server",
-    code_index_path=".watchtower-simple_server/code_index.json",
-    output_dir=".watchtower-simple_server",
+    code_index_path=".watchtrace-simple_server/code_index.json",
+    output_dir=".watchtrace-simple_server",
     enable_ui=True,
-    ui_dist_dir="frontend/watchtower-ui/dist",
+    ui_dist_dir="frontend/watchtrace-ui/dist",
 )
 
 @app.get("/healthcheck")

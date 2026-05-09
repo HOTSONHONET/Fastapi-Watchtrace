@@ -26,7 +26,7 @@ def main():
     print("\n3. Update the dataset")
     updated = requests.put(
         f"{BASE_URL}/datasets/{dataset_id}",
-        json={"description": "Updated dataset for watchtower demo"},
+        json={"description": "Updated dataset for watchtrace demo"},
     ).json()
     print(updated)
 

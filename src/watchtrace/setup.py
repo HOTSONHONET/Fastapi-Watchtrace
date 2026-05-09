@@ -7,19 +7,19 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from .indexer import build_and_save_code_index, load_code_index
-from .middleware import WatchTowerMiddleware
-from .api import create_watchtower_router
+from .middleware import WatchTraceMiddleware
+from .api import create_watchtrace_router
 
 
-def setup_watchtower(
+def setup_watchtrace(
     app: FastAPI,
     source_root: str,
     code_index_path: str,
-    output_dir: str = ".watchtower",
+    output_dir: str = ".watchtrace",
     auto_build_index: bool = True,
     enable_ui: bool = False,
-    api_prefix: str = "/__watchtower/api",
-    ui_mount_path: str = "/__watchtower",
+    api_prefix: str = "/__watchtrace/api",
+    ui_mount_path: str = "/__watchtrace",
     ui_dist_dir: str | None = None,
     exclude_paths: list[str] | None = None,
     trace_inputs: bool = True,
@@ -29,15 +29,15 @@ def setup_watchtower(
     input_max_collection_items: int = 10,
 ) -> None:
     """
-    Configure WatchTower for a FastAPI application.
+    Configure Watchtrace for a FastAPI application.
 
-    WatchTower adds request-level middleware, builds or loads a project code index,
-    exposes internal WatchTower API endpoints, and optionally mounts the bundled
-    WatchTower UI.
+    Watchtrace adds request-level middleware, builds or loads a project code index,
+    exposes internal Watchtrace API endpoints, and optionally mounts the bundled
+    Watchtrace UI.
 
     In normal package usage, users do not need to provide ``ui_dist_dir``.
-    When ``enable_ui=True`` and ``ui_dist_dir`` is not provided, WatchTower uses
-    the packaged UI assets from ``watchtower/ui_dist``.
+    When ``enable_ui=True`` and ``ui_dist_dir`` is not provided, Watchtrace uses
+    the packaged UI assets from ``watchtrace/ui_dist``.
 
     ``ui_dist_dir`` is only intended for development or advanced use cases where
     the caller wants to override the bundled frontend with a custom/local UI build.
@@ -48,14 +48,14 @@ def setup_watchtower(
             and trace.
         code_index_path: Path where the generated code index JSON is stored or
             loaded from.
-        output_dir: Directory where WatchTower request artifacts are written.
+        output_dir: Directory where Watchtrace request artifacts are written.
         auto_build_index: If True, automatically build the code index when it
             does not exist.
-        enable_ui: If True, mount the WatchTower UI at ``ui_mount_path``.
-        api_prefix: URL prefix for WatchTower's internal API routes.
-        ui_mount_path: URL path where the WatchTower UI is mounted.
+        enable_ui: If True, mount the Watchtrace UI at ``ui_mount_path``.
+        api_prefix: URL prefix for Watchtrace's internal API routes.
+        ui_mount_path: URL path where the Watchtrace UI is mounted.
         ui_dist_dir: Optional path to a custom frontend build directory. If not
-            provided, the packaged WatchTower UI is used.
+            provided, the packaged Watchtrace UI is used.
         exclude_paths: Request path prefixes excluded from tracing.
         trace_inputs: If True, capture request and function inputs.
         include_self: Whether to include ``self`` when serializing method inputs.
@@ -76,7 +76,7 @@ def setup_watchtower(
     else:
         if not auto_build_index:
             raise FileNotFoundError(
-                f"WatchTower code index not found at {code_index_file}"
+                f"Watchtrace code index not found at {code_index_file}"
             )
 
         code_index = build_and_save_code_index(
@@ -84,11 +84,11 @@ def setup_watchtower(
             output_file=str(code_index_file),
         ).to_dict()
 
-    app.state.watchtower_code_index = code_index
-    app.state.watchtower_output_dir = output_dir
+    app.state.watchtrace_code_index = code_index
+    app.state.watchtrace_output_dir = output_dir
 
     app.add_middleware(
-        WatchTowerMiddleware,
+        WatchTraceMiddleware,
         source_root=resolved_source_root,
         output_dir=output_dir,
         exclude_paths=exclude_paths
@@ -101,9 +101,9 @@ def setup_watchtower(
     )
 
     app.include_router(
-        create_watchtower_router(output_dir=output_dir),
+        create_watchtrace_router(output_dir=output_dir),
         prefix=api_prefix,
-        tags=["watchtower"],
+        tags=["watchtrace"],
     )
 
     if enable_ui:
@@ -114,26 +114,26 @@ def setup_watchtower(
             if custom_dist.exists():
                 dist_dir = custom_dist
             else:
-                print("Warning: Configured WatchTower UI directory not found. Using packaged UI.")
+                print("Warning: Configured Watchtrace UI directory not found. Using packaged UI.")
 
         if dist_dir is None:
-            packaged_ui = files("watchtower").joinpath("ui_dist")
+            packaged_ui = files("watchtrace").joinpath("ui_dist")
             with as_file(packaged_ui) as packaged_dist:
                 if not packaged_dist.exists():
                     raise FileNotFoundError(
-                        "Packaged WatchTower UI not found. "
-                        "Make sure src/watchtower/ui_dist is included in package data."
+                        "Packaged Watchtrace UI not found. "
+                        "Make sure src/watchtrace/ui_dist is included in package data."
                     )
 
                 app.mount(
                     ui_mount_path,
                     StaticFiles(directory=str(packaged_dist), html=True),
-                    name="watchtower-ui",
+                    name="watchtrace-ui",
                 )
                 return
 
         app.mount(
             ui_mount_path,
             StaticFiles(directory=str(dist_dir), html=True),
-            name="watchtower-ui",
+            name="watchtrace-ui",
         )

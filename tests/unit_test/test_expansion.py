@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from watchtower.expansion import get_child_events_within_range
+from watchtrace.expansion import get_child_events_within_range
 
 
 def test_get_child_events_within_range_keeps_events_inside_parent_window() -> None:

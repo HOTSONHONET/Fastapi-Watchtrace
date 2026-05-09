@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from watchtower.trace_parser import (
+from watchtrace.trace_parser import (
     load_memory_artifact,
     load_trace,
     normalize_trace_events,

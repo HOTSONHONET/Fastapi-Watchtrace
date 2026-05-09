@@ -159,7 +159,7 @@ function shouldHideRequest(path) {
   if (!path) return false;
 
   return (
-    path.startsWith("/__watchtower") ||
+    path.startsWith("/__watchtrace") ||
     path === "/docs" ||
     path === "/openapi.json" ||
     path === "/favicon.ico"
@@ -206,7 +206,7 @@ export default function App() {
     setRequestsError("");
 
     try {
-      const res = await fetch("/__watchtower/api/requests");
+      const res = await fetch("/__watchtrace/api/requests");
       if (!res.ok) {
         throw new Error(`Failed to fetch requests: ${res.status}`);
       }
@@ -228,7 +228,7 @@ export default function App() {
     setGraphError("");
 
     try {
-      const res = await fetch(`/__watchtower/api/requests/${requestId}/graph`);
+      const res = await fetch(`/__watchtrace/api/requests/${requestId}/graph`);
       if (!res.ok) {
         throw new Error(`Failed to fetch graph: ${res.status}`);
       }
@@ -530,7 +530,7 @@ export default function App() {
     <div className="app-shell">
       <aside className="left-sidebar">
         <div className="brand-block">
-          <h1>WatchTower</h1>
+          <h1>WatchTrace</h1>
           <p>Request Catalog</p>
         </div>
 
