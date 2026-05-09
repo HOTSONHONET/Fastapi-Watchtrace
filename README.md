@@ -33,41 +33,56 @@ uv add fastapi-watchtower
 
 ## 🧪 Example Usage
 
+For this below file structure
+
+```bash
+
+> tree
+.
+├── README.md
+├── main.py
+├── pyproject.toml
+└── uv.lock
+
+```
+
+Import and initialize `watchtower`
+
 ```python
 from fastapi import FastAPI
-
-from .api.routes import router
-from .core.config import settings
-from .core.logging_util import configure_logging
 from watchtower import setup_watchtower
 
-configure_logging()
-
 app = FastAPI(
-    title="ML Pipeline Server Example",
+    title="My Server",
     version="1.0.0",
-    description="A layered FastAPI example for demonstrating WatchTower tracing on realistic ML pipelines.",
+    description="My ",
 )
 
 setup_watchtower(
     app,
-    source_root="examples/ml_pipeline_server",
-    code_index_path=".watchtower-ml_pipeline_server/code_index.json",
-    output_dir=".watchtower-ml_pipeline_server",
+    source_root=".",
+    code_index_path=".code_index.json",
+    output_dir=".server_profile", # <- here you are mentioning where to store the profile logs
     enable_ui=True,
-    ui_dist_dir="frontend/watchtower-ui/dist",
 )
 
-app.include_router(router, prefix=settings.api_prefix)
 
 @app.get("/")
 async def healthcheck():
     return {
         "status": "ok",
-        "service": "ml-pipeline-server",
-        "api_prefix": settings.api_prefix,
     }
 ```
+
+Then run you server
+
+```bash
+
+uvicorn main:app --reload --port 8000
+
+```
+
+Once the server is up, you can visit this url [http://localhost:8000/__watchtower/](http://localhost:8000/__watchtower/)
 
 ---
 

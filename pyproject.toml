@@ -1,12 +1,12 @@
 [project]
 name = "fastapi-watchtower"
-version = "1.0.3"
+version = "0.0.1"
 description = "Request tracing and visualization for FastAPI applications."
-authors = [{name = "Hotson Honett", email = "hotsonhonet@gmail.com"}]
+authors = [{name = "Hotson Honet", email = "hotsonhonet@gmail.com"}]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi[all]>=0.135.3",
+    "fastapi[all]>=0.136.1",
     "numpy>=2.4.4",
     "requests>=2.33.1",
     "twine>=6.2.0",
@@ -16,3 +16,6 @@ dependencies = [
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+watchtower = ["ui_dist/**/*"]
