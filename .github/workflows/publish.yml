@@ -31,7 +31,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run unit tests
-        run: uv run pytest tests/unit_test
+        run: uv run --with pytest pytest tests/unit_test
 
       - name: Build package
         run: uv build
